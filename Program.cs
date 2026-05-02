@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using GRH_SENTECH.Data;
 using GRH_SENTECH.Repositories;
 using GRH_SENTECH.Services;
-using GRH_SENTECH.Models.Enums;
 using GRH_SENTECH.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,16 +10,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Enregistrement des repositories et services
+// Repositories
 builder.Services.AddScoped<IEmployeRepository, EmployeRepository>();
 builder.Services.AddScoped<IContratRepository, ContratRepository>();
 builder.Services.AddScoped<ICongeRepository, CongeRepository>();
+
+// Services
 builder.Services.AddScoped<IEmployeService, EmployeService>();
 builder.Services.AddScoped<ICongeService, CongeService>();
 
+// Filtre de journalisation
 builder.Services.AddScoped<JournalisationActionFilter>();
 
-// Add services to the container.
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
@@ -29,7 +30,6 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
