@@ -145,7 +145,6 @@ namespace GRH_SENTECH.Services
             return ServiceResult<Evaluation>.Ok(evaluation, "Évaluation enregistrée.");
         }
 
-        // transfert d'un employe vers un autre departement avec transaction (Exercice 2.3)
         public async Task<ServiceResult<bool>> TransfertEmployeAsync(int employeId, int nouveauDeptId, decimal nouveauSalaire)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
