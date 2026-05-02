@@ -195,7 +195,6 @@ namespace GRH_SENTECH.Controllers
             return RedirectToAction("Details", new { id = vm.EmployeId });
         }
 
-        // mapping entite -> viewmodel
         private static EmployeViewModel FromEntity(Employe e)
         {
             var contratActif = e.Contrats
@@ -220,7 +219,6 @@ namespace GRH_SENTECH.Controllers
             };
         }
 
-        // mapping viewmodel -> entite
         private static Employe ToEntity(EmployeViewModel vm)
         {
             return new Employe

@@ -1,6 +1,5 @@
 namespace GRH_SENTECH.Services
 {
-    // classe generique pour retourner le resultat d'une operation avec un message
     public class ServiceResult<T>
     {
         public bool Success { get; set; }

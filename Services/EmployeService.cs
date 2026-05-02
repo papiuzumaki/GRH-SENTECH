@@ -35,7 +35,6 @@ namespace GRH_SENTECH.Services
 
         public async Task<ServiceResult<Employe>> CreerEmployeAsync(Employe employe)
         {
-            // verifier que l'employe a au moins 18 ans (RG05)
             int age = DateTime.Today.Year - employe.DateNaissance.Year;
             if (employe.DateNaissance.Date > DateTime.Today.AddYears(-age)) age--;
 
@@ -64,12 +63,10 @@ namespace GRH_SENTECH.Services
             if (employe == null)
                 return ServiceResult<bool>.Fail("Employé introuvable.");
 
-            // RG03 : pas de suppression si CDI actif
             var contratActif = await _contratRepo.GetContratActifAsync(id);
             if (contratActif != null && contratActif.TypeContrat == TypeContrat.CDI)
                 return ServiceResult<bool>.Fail("Impossible de supprimer un employé avec un contrat CDI actif.");
 
-            // RG03 : pas de suppression si conge en attente
             if (employe.Conges.Any(c => c.Statut == StatutConge.EnAttente))
                 return ServiceResult<bool>.Fail("Cet employé a des congés en attente, suppression impossible.");
 
@@ -84,12 +81,10 @@ namespace GRH_SENTECH.Services
             if (employe == null)
                 return ServiceResult<Contrat>.Fail("Employé introuvable.");
 
-            // RG01 : un seul contrat actif a la fois
             var contratExistant = await _contratRepo.GetContratActifAsync(employeId);
             if (contratExistant != null)
                 return ServiceResult<Contrat>.Fail("Cet employé a déjà un contrat actif.");
 
-            // RG02 : salaire dans la fourchette du poste
             var poste = await _context.Postes.FindAsync(employe.PosteId);
             if (poste != null)
             {
@@ -98,7 +93,6 @@ namespace GRH_SENTECH.Services
                         $"Le salaire doit être entre {poste.SalaireMin} et {poste.SalaireMax} FCFA pour ce poste.");
             }
 
-            // RG07 : verifier que le budget du departement ne sera pas depasse
             var dept = await _context.Departements
                 .Include(d => d.Employes)
                 .ThenInclude(e => e.Contrats)
@@ -127,7 +121,6 @@ namespace GRH_SENTECH.Services
             if (employe == null)
                 return ServiceResult<Evaluation>.Fail("Employé introuvable.");
 
-            // RG06 : 6 mois d'anciennete minimum pour etre evalue
             var premierContrat = employe.Contrats.OrderBy(c => c.DateDebut).FirstOrDefault();
             if (premierContrat == null)
                 return ServiceResult<Evaluation>.Fail("L'employé n'a pas de contrat enregistré.");
@@ -161,7 +154,6 @@ namespace GRH_SENTECH.Services
                 if (nouveauDept == null)
                     return ServiceResult<bool>.Fail("Département introuvable.");
 
-                // verifier le budget du nouveau departement
                 decimal total = nouveauDept.Employes
                     .Where(e => e.Id != employeId)
                     .SelectMany(e => e.Contrats)
@@ -171,7 +163,6 @@ namespace GRH_SENTECH.Services
                 if (total + nouveauSalaire > nouveauDept.Budget)
                     return ServiceResult<bool>.Fail("Budget du département de destination insuffisant.");
 
-                // on cloture l'ancien contrat
                 var ancienContrat = await _contratRepo.GetContratActifAsync(employeId);
                 if (ancienContrat != null)
                 {
@@ -179,7 +170,6 @@ namespace GRH_SENTECH.Services
                     _contratRepo.Update(ancienContrat);
                 }
 
-                // nouveau contrat dans le nouveau departement
                 var contrat = new Contrat
                 {
                     EmployeId = employeId,
