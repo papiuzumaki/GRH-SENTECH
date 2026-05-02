@@ -13,19 +13,19 @@ namespace GRH_SENTECH.Filters
 
         public void OnActionExecuting(ActionExecutingContext context)
         {
-            var controleur = context.RouteData.Values["controller"];
+            var ctrl = context.RouteData.Values["controller"];
             var action = context.RouteData.Values["action"];
-            _logger.LogInformation($"[GRH] Début : {controleur}/{action} — {DateTime.Now:dd/MM/yyyy HH:mm:ss}");
+            _logger.LogInformation($"Action démarrée : {ctrl}/{action}");
         }
 
         public void OnActionExecuted(ActionExecutedContext context)
         {
-            var controleur = context.RouteData.Values["controller"];
-            var action = context.RouteData.Values["action"];
             if (context.Exception != null)
-                _logger.LogError($"[GRH] Erreur dans {controleur}/{action} : {context.Exception.Message}");
-            else
-                _logger.LogInformation($"[GRH] Fin : {controleur}/{action} — {DateTime.Now:dd/MM/yyyy HH:mm:ss}");
+            {
+                var ctrl = context.RouteData.Values["controller"];
+                var action = context.RouteData.Values["action"];
+                _logger.LogError($"Erreur dans {ctrl}/{action} : {context.Exception.Message}");
+            }
         }
     }
 }

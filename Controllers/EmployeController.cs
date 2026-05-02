@@ -15,7 +15,7 @@ namespace GRH_SENTECH.Controllers
     {
         private readonly IEmployeService _employeService;
         private readonly ApplicationDbContext _context;
-        private const int PageSize = 10;
+        private const int PAGE_SIZE = 10;
 
         public EmployeController(IEmployeService employeService, ApplicationDbContext context)
         {
@@ -23,171 +23,151 @@ namespace GRH_SENTECH.Controllers
             _context = context;
         }
 
-        // GET: Employe
         public async Task<IActionResult> Index(int page = 1, string? search = null)
         {
-            var totalEmployes = await _employeService.CountAsync(search);
-            var totalPages = (int)Math.Ceiling(totalEmployes / (double)PageSize);
+            int total = await _employeService.CountAsync(search);
+            int totalPages = (int)Math.Ceiling(total / (double)PAGE_SIZE);
 
-            var result = await _employeService.GetAllAsync(page, PageSize, search);
+            var result = await _employeService.GetAllAsync(page, PAGE_SIZE, search);
             if (!result.Success)
             {
                 TempData["Erreur"] = result.Message;
                 return View(new EmployeIndexViewModel());
             }
 
-            var employes = result.Data!.Select(e => FromEntity(e)).ToList();
-
             var vm = new EmployeIndexViewModel
             {
-                Employes = employes,
+                Employes = result.Data!.Select(e => FromEntity(e)).ToList(),
                 PageActuelle = page,
                 TotalPages = totalPages,
-                TotalEmployes = totalEmployes,
+                TotalEmployes = total,
                 SearchTerm = search,
-                PageSize = PageSize
+                PageSize = PAGE_SIZE
             };
 
             return View(vm);
         }
 
-        // GET: Employe/Details/5
         public async Task<IActionResult> Details(int id)
         {
             var result = await _employeService.GetByIdAsync(id);
             if (!result.Success)
             {
                 TempData["Erreur"] = result.Message;
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
             return View(FromEntity(result.Data!));
         }
 
-        // GET: Employe/Create
         public async Task<IActionResult> Create()
         {
-            await ChargerListesDeroulantes();
+            await ChargerListes();
             return View(new EmployeViewModel { DateNaissance = DateTime.Today.AddYears(-25) });
         }
 
-        // POST: Employe/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(EmployeViewModel vm)
         {
             if (!ModelState.IsValid)
             {
-                await ChargerListesDeroulantes();
+                await ChargerListes();
                 return View(vm);
             }
 
-            var employe = ToEntity(vm);
-            var result = await _employeService.CreerEmployeAsync(employe);
-
+            var result = await _employeService.CreerEmployeAsync(ToEntity(vm));
             if (!result.Success)
             {
-                ModelState.AddModelError(string.Empty, result.Message);
-                await ChargerListesDeroulantes();
+                ModelState.AddModelError("", result.Message);
+                await ChargerListes();
                 return View(vm);
             }
 
-            TempData["Succes"] = "Employé créé avec succès.";
-            return RedirectToAction(nameof(Index));
+            TempData["Succes"] = "Employé ajouté avec succès.";
+            return RedirectToAction("Index");
         }
 
-        // GET: Employe/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
             var result = await _employeService.GetByIdAsync(id);
             if (!result.Success)
             {
                 TempData["Erreur"] = result.Message;
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
 
-            await ChargerListesDeroulantes();
+            await ChargerListes();
             return View(FromEntity(result.Data!));
         }
 
-        // POST: Employe/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, EmployeViewModel vm)
         {
-            if (id != vm.Id)
-                return NotFound();
+            if (id != vm.Id) return NotFound();
 
             if (!ModelState.IsValid)
             {
-                await ChargerListesDeroulantes();
+                await ChargerListes();
                 return View(vm);
             }
 
-            var employe = ToEntity(vm);
-            var result = await _employeService.ModifierEmployeAsync(employe);
-
+            var result = await _employeService.ModifierEmployeAsync(ToEntity(vm));
             if (!result.Success)
             {
-                ModelState.AddModelError(string.Empty, result.Message);
-                await ChargerListesDeroulantes();
+                ModelState.AddModelError("", result.Message);
+                await ChargerListes();
                 return View(vm);
             }
 
-            TempData["Succes"] = "Employé modifié avec succès.";
-            return RedirectToAction(nameof(Index));
+            TempData["Succes"] = "Employé modifié.";
+            return RedirectToAction("Index");
         }
 
-        // GET: Employe/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
             var result = await _employeService.GetByIdAsync(id);
             if (!result.Success)
             {
                 TempData["Erreur"] = result.Message;
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
             return View(FromEntity(result.Data!));
         }
 
-        // POST: Employe/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var result = await _employeService.SupprimerEmployeAsync(id);
-
             if (!result.Success)
             {
                 TempData["Erreur"] = result.Message;
-                return RedirectToAction(nameof(Delete), new { id });
+                return RedirectToAction("Delete", new { id });
             }
 
-            TempData["Succes"] = "Employé supprimé avec succès.";
-            return RedirectToAction(nameof(Index));
+            TempData["Succes"] = "Employé supprimé.";
+            return RedirectToAction("Index");
         }
 
-        // GET: Employe/AjouterContrat/5
         public async Task<IActionResult> AjouterContrat(int id)
         {
             var result = await _employeService.GetByIdAsync(id);
             if (!result.Success)
             {
                 TempData["Erreur"] = result.Message;
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
 
-            var employe = result.Data!;
-            var vm = new AjouterContratViewModel
+            var emp = result.Data!;
+            return View(new AjouterContratViewModel
             {
                 EmployeId = id,
-                EmployeNomComplet = $"{employe.Prenom} {employe.Nom}",
+                EmployeNomComplet = $"{emp.Prenom} {emp.Nom}",
                 DateDebut = DateTime.Today
-            };
-
-            return View(vm);
+            });
         }
 
-        // POST: Employe/AjouterContrat
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AjouterContrat(AjouterContratViewModel vm)
@@ -205,19 +185,17 @@ namespace GRH_SENTECH.Controllers
             };
 
             var result = await _employeService.AjouterContratAsync(vm.EmployeId, contrat);
-
             if (!result.Success)
             {
-                ModelState.AddModelError(string.Empty, result.Message);
+                ModelState.AddModelError("", result.Message);
                 return View(vm);
             }
 
-            TempData["Succes"] = "Contrat ajouté avec succès.";
-            return RedirectToAction(nameof(Details), new { id = vm.EmployeId });
+            TempData["Succes"] = "Contrat ajouté.";
+            return RedirectToAction("Details", new { id = vm.EmployeId });
         }
 
-        // --- Helpers mapping ---
-
+        // mapping entite -> viewmodel
         private static EmployeViewModel FromEntity(Employe e)
         {
             var contratActif = e.Contrats
@@ -238,10 +216,11 @@ namespace GRH_SENTECH.Controllers
                 PosteId = e.PosteId,
                 DepartementNom = e.Departement?.Nom,
                 PosteIntitule = e.Poste?.Intitule,
-                TypeContratActif = contratActif != null ? contratActif.TypeContrat.ToString() : null
+                TypeContratActif = contratActif?.TypeContrat.ToString()
             };
         }
 
+        // mapping viewmodel -> entite
         private static Employe ToEntity(EmployeViewModel vm)
         {
             return new Employe
@@ -258,15 +237,17 @@ namespace GRH_SENTECH.Controllers
             };
         }
 
-        private async Task ChargerListesDeroulantes()
+        private async Task ChargerListes()
         {
-            var departements = await _context.Departements.OrderBy(d => d.Nom).ToListAsync();
+            var depts = await _context.Departements.OrderBy(d => d.Nom).ToListAsync();
             var postes = await _context.Postes.OrderBy(p => p.Intitule).ToListAsync();
 
-            ViewBag.Departements = new SelectList(departements, "Id", "Nom");
+            ViewBag.Departements = new SelectList(depts, "Id", "Nom");
             ViewBag.Postes = new SelectList(postes, "Id", "Intitule");
-            ViewBag.Genres = new SelectList(Enum.GetValues(typeof(Genre)).Cast<Genre>()
-                .Select(g => new { Value = (int)g, Text = g.ToString() }), "Value", "Text");
+            ViewBag.Genres = new SelectList(
+                Enum.GetValues(typeof(Genre)).Cast<Genre>()
+                    .Select(g => new { Value = (int)g, Text = g.ToString() }),
+                "Value", "Text");
         }
     }
 }
