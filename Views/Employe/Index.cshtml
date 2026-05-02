@@ -1,0 +1,156 @@
+@model GRH_SENTECH.ViewModels.EmployeIndexViewModel
+
+@{
+    ViewData["Title"] = "Liste des employés";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="fas fa-users"></i> Employés <span class="badge badge-secondary">@Model.TotalEmployes</span></h2>
+        <a asp-action="Create" class="btn btn-success">
+            <i class="fas fa-plus"></i> Nouvel employé
+        </a>
+    </div>
+
+    @if (TempData["Succes"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Succes"]
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+    }
+    @if (TempData["Erreur"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["Erreur"]
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+    }
+
+    <!-- Formulaire de recherche -->
+    <div class="card mb-3">
+        <div class="card-body py-2">
+            <form method="get" asp-action="Index" class="form-inline">
+                <div class="input-group w-50">
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Rechercher par nom, matricule ou email..."
+                           value="@Model.SearchTerm" />
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Rechercher
+                        </button>
+                        @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                        {
+                            <a asp-action="Index" class="btn btn-outline-secondary">Réinitialiser</a>
+                        }
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tableau des employés -->
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Matricule</th>
+                        <th>Nom complet</th>
+                        <th>Email</th>
+                        <th>Département</th>
+                        <th>Poste</th>
+                        <th>Contrat</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var emp in Model.Employes)
+                    {
+                        <tr>
+                            <td><strong>@emp.Matricule</strong></td>
+                            <td>@emp.NomComplet</td>
+                            <td>@emp.Email</td>
+                            <td>@emp.DepartementNom</td>
+                            <td>@emp.PosteIntitule</td>
+                            <td>
+                                @if (emp.TypeContratActif == "CDI")
+                                {
+                                    <span class="badge badge-success">CDI</span>
+                                }
+                                else if (emp.TypeContratActif == "CDD")
+                                {
+                                    <span class="badge badge-warning text-dark">CDD</span>
+                                }
+                                else if (emp.TypeContratActif == "Stage")
+                                {
+                                    <span class="badge badge-info">Stage</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-danger">Sans contrat</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <a asp-action="Details" asp-route-id="@emp.Id" class="btn btn-sm btn-info" title="Détails">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@emp.Id" class="btn btn-sm btn-warning" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a asp-action="AjouterContrat" asp-route-id="@emp.Id" class="btn btn-sm btn-secondary" title="Contrat">
+                                    <i class="fas fa-file-contract"></i>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@emp.Id" class="btn btn-sm btn-danger" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Employes.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">Aucun employé trouvé.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="mt-3">
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(Model.PageActuelle == 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index"
+                       asp-route-page="@(Model.PageActuelle - 1)"
+                       asp-route-search="@Model.SearchTerm">
+                        &laquo; Précédent
+                    </a>
+                </li>
+
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.PageActuelle ? "active" : "")">
+                        <a class="page-link" asp-action="Index"
+                           asp-route-page="@i"
+                           asp-route-search="@Model.SearchTerm">@i</a>
+                    </li>
+                }
+
+                <li class="page-item @(Model.PageActuelle == Model.TotalPages ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index"
+                       asp-route-page="@(Model.PageActuelle + 1)"
+                       asp-route-search="@Model.SearchTerm">
+                        Suivant &raquo;
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <p class="text-center text-muted small">
+            Page @Model.PageActuelle sur @Model.TotalPages — @Model.TotalEmployes employé(s) au total
+        </p>
+    }
+</div>

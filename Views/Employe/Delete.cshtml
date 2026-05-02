@@ -1,0 +1,69 @@
+@model GRH_SENTECH.ViewModels.EmployeViewModel
+
+@{
+    ViewData["Title"] = "Supprimer un employé";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmer la suppression</h4>
+                </div>
+                <div class="card-body">
+
+                    @if (TempData["Erreur"] != null)
+                    {
+                        <div class="alert alert-danger">@TempData["Erreur"]</div>
+                    }
+
+                    <p class="lead">Voulez-vous vraiment supprimer cet employé ?</p>
+
+                    <dl class="row">
+                        <dt class="col-sm-4">Matricule</dt>
+                        <dd class="col-sm-8"><strong>@Model.Matricule</strong></dd>
+
+                        <dt class="col-sm-4">Nom complet</dt>
+                        <dd class="col-sm-8">@Model.NomComplet</dd>
+
+                        <dt class="col-sm-4">Email</dt>
+                        <dd class="col-sm-8">@Model.Email</dd>
+
+                        <dt class="col-sm-4">Département</dt>
+                        <dd class="col-sm-8">@Model.DepartementNom</dd>
+
+                        <dt class="col-sm-4">Contrat</dt>
+                        <dd class="col-sm-8">
+                            @if (Model.TypeContratActif != null)
+                            {
+                                <span class="badge badge-warning">@Model.TypeContratActif actif</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Aucun contrat</span>
+                            }
+                        </dd>
+                    </dl>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-info-circle"></i>
+                        La suppression est impossible si l'employé a un contrat CDI actif ou des congés en attente.
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Annuler
+                    </a>
+                    <form asp-action="Delete" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Confirmer la suppression
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,13 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.log
+
+## Secrets
+appsettings.Development.json
+
+## macOS
+.DS_Store
