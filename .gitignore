@@ -9,5 +9,8 @@ obj/
 ## Secrets
 appsettings.Development.json
 
+## Librairies frontend (restaurées via dotnet restore)
+wwwroot/lib/
+
 ## macOS
 .DS_Store
