@@ -1,0 +1,111 @@
+@model IEnumerable<GRH_SENTECH.ViewModels.CongeViewModel>
+
+@{
+    ViewData["Title"] = "Congés";
+    var employeId = ViewBag.EmployeId;
+    var nomComplet = ViewBag.EmployeNomComplet;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3><i class="fas fa-umbrella-beach"></i> Congés — @nomComplet</h3>
+        <div>
+            <a asp-controller="Employe" asp-action="Details" asp-route-id="@employeId" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+            <a asp-action="Demander" asp-route-id="@employeId" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouvelle demande
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Succes"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Succes"]
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+    }
+    @if (TempData["Erreur"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["Erreur"]
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Type</th>
+                        <th>Date début</th>
+                        <th>Date fin</th>
+                        <th>Durée</th>
+                        <th>Motif</th>
+                        <th>Statut</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in Model)
+                    {
+                        <tr>
+                            <td>@c.TypeConge</td>
+                            <td>@c.DateDebut.ToString("dd/MM/yyyy")</td>
+                            <td>@c.DateFin.ToString("dd/MM/yyyy")</td>
+                            <td>@c.NbJours jour(s)</td>
+                            <td>@(c.Motif ?? "—")</td>
+                            <td>
+                                @if (c.Statut == GRH_SENTECH.Models.Enums.StatutConge.Approuve)
+                                {
+                                    <span class="badge badge-success">Approuvé</span>
+                                }
+                                else if (c.Statut == GRH_SENTECH.Models.Enums.StatutConge.Refuse)
+                                {
+                                    <span class="badge badge-danger">Refusé</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-warning text-dark">En attente</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                @if (c.Statut == GRH_SENTECH.Models.Enums.StatutConge.EnAttente)
+                                {
+                                    <form asp-action="Approuver" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@c.Id" />
+                                        <input type="hidden" name="employeId" value="@c.EmployeId" />
+                                        <button type="submit" class="btn btn-sm btn-success" title="Approuver">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                    <form asp-action="Refuser" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@c.Id" />
+                                        <input type="hidden" name="employeId" value="@c.EmployeId" />
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Refuser">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">Traité</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">Aucune demande de congé.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

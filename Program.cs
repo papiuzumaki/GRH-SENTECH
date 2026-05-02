@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using GRH_SENTECH.Data;
 using GRH_SENTECH.Repositories;
 using GRH_SENTECH.Services;
+using GRH_SENTECH.Models.Enums;
 using GRH_SENTECH.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,7 +14,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Enregistrement des repositories et services
 builder.Services.AddScoped<IEmployeRepository, EmployeRepository>();
 builder.Services.AddScoped<IContratRepository, ContratRepository>();
+builder.Services.AddScoped<ICongeRepository, CongeRepository>();
 builder.Services.AddScoped<IEmployeService, EmployeService>();
+builder.Services.AddScoped<ICongeService, CongeService>();
 
 builder.Services.AddScoped<JournalisationActionFilter>();
 

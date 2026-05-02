@@ -77,6 +77,9 @@
                         <a asp-action="AjouterContrat" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
                             <i class="fas fa-file-contract"></i> Ajouter contrat
                         </a>
+                        <a asp-controller="Conge" asp-action="ParEmploye" asp-route-id="@Model.Id" class="btn btn-outline-primary">
+                            <i class="fas fa-umbrella-beach"></i> Congés
+                        </a>
                         <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
                             <i class="fas fa-edit"></i> Modifier
                         </a>
